@@ -1,11 +1,28 @@
 const router = require('express').Router();
-const { Blog } = require('../models');
+const { Blog, User } = require('../models');
+const jwt = require('jsonwebtoken');
+const { SECRET } = require('../util/config');
+const { Op } = require('sequelize');
 
-router.post(`/`, async (req, res) => {
+const tokenExtractor = (req, res, next) => {
+    const auth = req.get('authorization');
+    if(auth && auth.toLowerCase().startsWith('bearer ')){
+        try {
+            req.decodedToken = jwt.verify(auth.substring(7), SECRET);
+            next();
+        }catch {
+            return res.status(401).send({ error: "Token invalid" });
+        }
+    }
+}
+
+router.post(`/`, tokenExtractor, async (req, res) => {
     try {
         const { author, title } = req.body;
+        const userId = req.decodedToken.id;
     
         const blog = await Blog.create({
+            userId: userId,
             author: author, 
             title: title, 
             url: "example.com"
@@ -19,9 +36,34 @@ router.post(`/`, async (req, res) => {
 })
 
 router.get(`/`, async (req, res) => {
-    const blogs = await Blog.findAll();
+    let where = {};
+
+    if (req.query.search) {
+        where = {
+            [Op.or]: {
+                author: {
+                    [Op.substring]: req.query.search
+                },
+                title: {
+                    [Op.substring]: req.query.search
+                }
+            }
+        }
+    }
     
-    console.log(JSON.stringify(blogs, null, 2));
+    const blogs = await Blog.findAll({
+        attributes: { exclude: ['userId'] },
+        include: {
+            model: User,
+            attributes: ['username']
+        },
+        order: [
+            ['likes', 'DESC']
+        ],
+        where
+    });
+    
+    // console.log(JSON.stringify(blogs, null, 2));
     res.send(blogs);
 })
 
@@ -58,8 +100,13 @@ router.put(`/:id`, blogGetter, async (req, res) => {
 
 })
 
-router.delete(`/:id`, blogGetter, async (req, res) => {
+router.delete(`/:id`, tokenExtractor, blogGetter, async (req, res) => {
+    if(req.decodedToken.id !== req.blog.userId) {
+        return res.status(401).send({ error: "Unauthorized" });
+    }
+
     const { blog } = req;
+    const id = blog.id;
 
     if(!blog) {
         return res.status(404).send({ error: "blog not found" });

@@ -10,6 +10,10 @@ A brief exercise project following along with the instructions on part 13 of the
 - Postgres
 - Sequelize
 
+## Quickstart
+
+To start the project and test out the API, first follow the steps below for set-up. Start up the postgres server on docker via `docker start container_name`, then from the root backend directory run `npm run dev`. You should be able to interact with the API using curl, or any other preferred method (I like using insomnia).
+
 ## Set-Up
 
 To configure this project for local development, follow the following steps.

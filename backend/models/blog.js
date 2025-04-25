@@ -22,14 +22,20 @@ Blog.init({
     likes: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+    },
+    yearWritten: {
+        type: DataTypes.INTEGER,
+        defaultValue: new Date().getFullYear(),
+        validate: {
+            isInt: true,
+            min: 1900, // Assuming blogs are not written before 1900
+            max: new Date().getFullYear() // No future dates
+        }
     }
 }, {
     sequelize, 
     underscored: true,
-    timestamps: false,
     modelName: 'blog',
 });
-// Sync the model with the database
-sequelize.sync();
 
 module.exports = Blog;
