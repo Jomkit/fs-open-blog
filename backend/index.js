@@ -22,7 +22,7 @@ const errorHandler = (error, req, res, next) => {
 
     if(error.name === "SequelizeValidationError") {
         return res.status(400).json({ error: "Validation error: username must follow email format" });
-    }
+    } 
 
     next(error);
  }

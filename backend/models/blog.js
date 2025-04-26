@@ -28,7 +28,7 @@ Blog.init({
         defaultValue: new Date().getFullYear(),
         validate: {
             isInt: true,
-            min: 1900, // Assuming blogs are not written before 1900
+            min: 1991, // Assuming blogs are not written before 1900
             max: new Date().getFullYear() // No future dates
         }
     }

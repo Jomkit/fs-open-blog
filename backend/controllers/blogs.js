@@ -13,25 +13,32 @@ const tokenExtractor = (req, res, next) => {
         }catch {
             return res.status(401).send({ error: "Token invalid" });
         }
+    } else {
+        return res.status(401).send({ error: "Token missing or invalid" });
     }
 }
 
 router.post(`/`, tokenExtractor, async (req, res) => {
     try {
-        const { author, title } = req.body;
+        const { author, title, yearWritten } = req.body;
         const userId = req.decodedToken.id;
     
         const blog = await Blog.create({
             userId: userId,
             author: author, 
             title: title, 
-            url: "example.com"
+            url: "example.com",
+            yearWritten: yearWritten
         })
-    
+
         res.send(blog);
     } catch (e) {
-        console.error("Error creating blog:", e);
-        res.status(400).send({ error: "Failed to create blog" });
+        if (e.name === "SequelizeValidationError") {
+            return res.status(400).send({ error: "Validation error: yearWritten must be an integer between 1991 and the current year" });
+        } else {
+            console.log("Error creating blog:", e);
+            res.status(400).send({ error: "Could not create blog post" });
+        }
     }
 })
 
