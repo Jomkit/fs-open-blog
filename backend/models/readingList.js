@@ -26,7 +26,7 @@ ReadingList.init({
 }, {
     sequelize,
     underscored: true,
-    modelName: 'reading_list',
+    timestamps: false
 });
 
 module.exports = ReadingList;
